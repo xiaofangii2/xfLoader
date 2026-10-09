@@ -22,18 +22,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Download ASM 9.8
+      - name: Download dependencies
         run: |
-          mkdir -p libs
+          mkdir -p libs /tmp/deps
           curl -L -o libs/asm-9.8.jar \
             https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
+          curl -L -o /tmp/deps/brigadier.jar \
+            https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
+          ls -la libs/asm-9.8.jar /tmp/deps/brigadier.jar
 
       - name: Compile
         run: |
           mkdir -p out
-          BRIG_URL="https://repo1.maven.org/maven2/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar"
-          curl -L -o /tmp/brigadier.jar "$BRIG_URL"
-          javac -cp "libs/asm-9.8.jar:/tmp/brigadier.jar" \
+          javac -cp "libs/asm-9.8.jar:/tmp/deps/brigadier.jar" \
                 -d out $(find src -name "*.java")
 
       - name: Package fat jar
