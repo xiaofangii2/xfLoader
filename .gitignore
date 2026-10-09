@@ -1,9 +1,15 @@
+# 编译中间产物 (每次 build 都会重新生成)
 out/
 fat/
-*.class
+
+# 日志
 *.log
+
+# IDE
 .idea/
 .vscode/
 *.iml
-*.tmp
+
+# 系统
 .DS_Store
+*.tmp
