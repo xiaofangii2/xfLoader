@@ -1,0 +1,9 @@
+out/
+fat/
+*.class
+*.log
+.idea/
+.vscode/
+*.iml
+*.tmp
+.DS_Store
