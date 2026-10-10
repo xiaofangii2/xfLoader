@@ -1,39 +1,51 @@
 # xfLoader
 
-[English](README.md) | [简体中文](README_zh-CN.md) | [繁體中文](README_zh-TW.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Deutsch](README_de.md) | [Français](README_fr.md) | [Español](README_es.md) | [Русский](README_ru.md) | [Português](README_pt.md)
-
-A homemade datapack loader for Minecraft Java Edition.
+A homemade datapack loader for Minecraft Java Edition 26.3.
 Built with Java Agent + ASM bytecode injection.
 No Fabric, no NeoForge - hooks directly into vanilla.
 
+## Modules
+
+- **loader** - the actual loader (`xfLoader.jar`). Attach via `-javaagent`.
+- **installer** - auto-installer (`xfLoader-install.jar`). Detects the
+  official launcher, downloads the loader, patches `26.3.json` to add
+  `-javaagent`.
+
 ## Features
 
-- Auto-load datapacks from version root:
-  drop .zip files into .minecraft/versions/<version>/datapack/,
-  they are injected into the game's datapack system on startup,
-  effective for all worlds.
-- Built-in datapacks: datapacks under xf_datapacks/ inside the jar
-  are extracted to datapack/ at startup and loaded together with
-  external ones.
-- Early injection: adds sources to PackRepository before world
-  loading, avoiding late-load warnings.
-- Command /xfloader: placeholder.
-  /xfloader debug <true|false> toggles debug logging.
+- Auto-load datapacks from `.minecraft/versions/26.3/datapack/`
+- Built-in datapacks under `xf_datapacks/` inside the jar
+- Injects sources into `PackRepository` before world load
+- Executes `/reload` on player join so datapacks take effect
+- `/xfloader` and `/xfloader debug <bool>` commands
+- Config file at `.minecraft/versions/26.3/config/xfloader.json`
 
-## Supported versions
+## Installation
 
-- Minecraft Java 26.3
+### Easy way (installer)
 
-## Usage
+1. Download `xfLoader-install.jar` from the latest release.
+2. Make sure you have started Minecraft 26.3 with the official launcher
+   at least once (so `versions/26.3/26.3.json` exists).
+3. Run `java -jar xfLoader-install.jar`.
+4. Launch 26.3 from the official launcher.
 
-1. Place xiaofang.jar into .minecraft/versions/<version>/.
-2. Add to launcher JVM args:
-   -javaagent:/path/to/xiaofang.jar
-3. Launch the game and enter any world.
+### Manual way
+
+1. Download `xfLoader.jar`.
+2. Put it in `.minecraft/versions/26.3/`.
+3. Edit `.minecraft/versions/26.3/26.3.json`, add to `arguments.jvm`:
+   `-javaagent:/absolute/path/to/xfLoader.jar`
+4. Launch 26.3.
 
 ## Build
 
-Run build.sh with bash. Requires JDK 17+ and ASM 9.8+ in libs/.
+Requires JDK 17+, Gradle wrapper included.
+
+Run build.sh with bash, or `./gradlew clean build`.
+Output goes to `build/libs/`:
+- `xfLoader.jar`
+- `xfLoader-install.jar`
 
 ## License
 
