@@ -1,0 +1,31 @@
+version: '1.0'
+name: xfLoader-build
+displayName: xfLoader 构建
+
+triggers:
+  push:
+    - matchType: PRECISE
+      branch: main
+
+stages:
+  - stage:
+      name: build-stage
+      displayName: 构建
+      failFast: false
+      steps:
+        - step: build@maven
+          name: build_jar
+          displayName: Gradle 构建
+          jdkVersion: 17
+          mavenVersion: 3.8.4
+          goals: |
+            chmod +x gradlew
+            mkdir -p libs /tmp/deps
+            curl -L -o libs/asm-9.8.jar https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
+            curl -L -o /tmp/deps/brigadier.jar https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
+            sed -i "s|/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar|/tmp/deps/brigadier.jar|" build.gradle
+            ./gradlew clean build --console=plain
+          artifacts:
+            - name: xfLoader
+              path:
+                - build/libs/*.jar
