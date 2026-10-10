@@ -25,23 +25,30 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Download ASM
+      - name: Prepare dependencies
         run: |
-          mkdir -p libs
+          mkdir -p libs /tmp/deps
           curl -L -o libs/asm-9.8.jar \
             https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
-
-      - name: Download Brigadier
-        run: |
-          mkdir -p /tmp/deps
           curl -L -o /tmp/deps/brigadier.jar \
             https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
 
-      - name: Patch build.gradle for CI paths
+      - name: Patch build.gradle for CI
         run: |
-          sed -i "s|/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar|/tmp/deps/brigadier.jar|" build.gradle
-          sed -i "/copyToFcl/d" build.gradle
-          sed -i "/build.dependsOn copyToFcl/d" build.gradle
+          python3 - << 'PYEOF'
+          import re
+          p = 'build.gradle'
+          s = open(p).read()
+          s = s.replace(
+              "'/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar'",
+              "'/tmp/deps/brigadier.jar'"
+          )
+          s = re.sub(r"tasks\.register\('copyToFcl'\).*?\n\}", "", s, flags=re.S)
+          s = re.sub(r"build\.dependsOn copyToFcl\n?", "", s)
+          open(p, 'w').write(s)
+          print('--- patched build.gradle ---')
+          print(s)
+          PYEOF
 
       - name: Build with Gradle
         run: ./gradlew clean build --console=plain
