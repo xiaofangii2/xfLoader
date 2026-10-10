@@ -3,14 +3,14 @@ plugins {
 }
 
 group = 'com.xf.lg'
-version = '1.0.0'
+version = '2.0.0'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation files('libs/asm-9.8.jar')
+    implementation files('../libs/asm-9.8.jar')
     implementation files('/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar')
 }
 
@@ -34,6 +34,7 @@ jar {
     from('xf_datapacks') {
         into 'xf_datapacks'
     }
+    archiveFileName = 'xfLoader.jar'
 }
 
 tasks.register('copyToFcl') {
