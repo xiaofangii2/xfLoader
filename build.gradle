@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.xf.lg'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation files('libs/asm-9.8.jar')
+    implementation files('/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar')
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+jar {
+    manifest {
+        attributes(
+            'Manifest-Version': '1.0',
+            'Premain-Class': 'com.xf.lg.MyLoaderAgent',
+            'Can-Retransform-Classes': 'true'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from('xf_datapacks') {
+        into 'xf_datapacks'
+    }
+}
+
+tasks.register('copyToFcl') {
+    dependsOn jar
+    doLast {
+        copy {
+            from jar.archiveFile
+            into '/storage/emulated/0/FCL/.minecraft/versions/26.3 xf'
+            rename { 'xiaofang.jar' }
+        }
+    }
+}
+
+build.dependsOn copyToFcl

@@ -16,19 +16,13 @@ public class DatapackCache {
         DATAPACK_DIR = dir;
         ZIPS.clear();
 
-        // 1. jar 内置数据包 -> 直接解压到 datapack/
         try {
             extractBuiltin(dir);
         } catch (Exception e) {
             Log.fail("内置解压失败: " + e);
-            e.printStackTrace();
         }
 
-        // 2. 扫外部 zip
-        if (!Files.isDirectory(dir)) {
-            Log.fail("目录不存在");
-            return;
-        }
+        if (!Files.isDirectory(dir)) return;
         try (var s = Files.list(dir)) {
             for (Path p : s.toList()) {
                 if (p.toString().endsWith(".zip")) {
@@ -48,8 +42,6 @@ public class DatapackCache {
             Log.i("jar 里无 xf_datapacks/");
             return;
         }
-        Log.i("找到 xf_datapacks/");
-
         URL jarUrl = DatapackCache.class.getProtectionDomain().getCodeSource().getLocation();
         Path jarPath = Paths.get(jarUrl.toURI());
 
@@ -62,7 +54,6 @@ public class DatapackCache {
                 if (!name.startsWith("xf_datapacks/")) continue;
                 if (entry.isDirectory()) continue;
 
-                // xf_datapacks/builtin/pack.mcmeta  ->  datapack/builtin/pack.mcmeta
                 String rel = name.substring("xf_datapacks/".length());
                 Path out = datapackDir.resolve(rel);
                 Files.createDirectories(out.getParent());

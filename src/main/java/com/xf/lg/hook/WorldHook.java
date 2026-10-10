@@ -11,22 +11,17 @@ public class WorldHook {
     private static boolean injected = false;
 
     public static void onWorldLoad(Object server) {
-        if (injected) { Log.i("已注入"); return; }
-        Log.step("世界加载, 注入数据包");
+        if (injected) return;
+        Log.step("世界加载, 注入数据包 source");
 
         try {
             Object repo = server.getClass().getMethod("getPackRepository").invoke(server);
-            Log.ok("repo = " + repo.getClass().getName());
-
             Field sourcesField = repo.getClass().getDeclaredField("sources");
             sourcesField.setAccessible(true);
             Object oldObj = sourcesField.get(repo);
 
             List<Object> newSources = new ArrayList<>();
-            if (oldObj instanceof Iterable<?> it) {
-                for (Object o : it) newSources.add(o);
-            }
-            Log.i("原 sources: " + newSources.size());
+            if (oldObj instanceof Iterable<?> it) for (Object o : it) newSources.add(o);
 
             Class<?> frsClass = Class.forName("net.minecraft.server.packs.repository.FolderRepositorySource");
             Class<?> ptClass  = Class.forName("net.minecraft.server.packs.PackType");
@@ -42,27 +37,20 @@ public class WorldHook {
                 .getConstructor(Path.class, ptClass, psClass, dvClass)
                 .newInstance(DatapackCache.DATAPACK_DIR, serverData, worldSource, validator);
             newSources.add(src);
-            Log.ok("source: " + DatapackCache.DATAPACK_DIR);
 
-            // 构造新 repo
             Class<?> repoCls = repo.getClass();
             Constructor<?> ctor = null;
             for (Constructor<?> c : repoCls.getDeclaredConstructors()) {
-                if (c.getParameterCount() == 1 && c.getParameterTypes()[0].isArray()) {
-                    ctor = c; break;
-                }
+                if (c.getParameterCount() == 1 && c.getParameterTypes()[0].isArray()) ctor = c;
             }
             Class<?> srcCls = Class.forName("net.minecraft.server.packs.repository.RepositorySource");
             Object arr = Array.newInstance(srcCls, newSources.size());
             for (int i = 0; i < newSources.size(); i++) Array.set(arr, i, newSources.get(i));
             ctor.setAccessible(true);
             Object newRepo = ctor.newInstance(arr);
-            Log.ok("新 repo = " + newRepo);
 
             newRepo.getClass().getMethod("reload").invoke(newRepo);
-            Log.ok("reload 完成");
 
-            // 替换 server 字段
             Field f = null;
             Class<?> cls = server.getClass();
             while (cls != null && f == null) {
@@ -73,8 +61,7 @@ public class WorldHook {
             }
             f.setAccessible(true);
             f.set(server, newRepo);
-            Log.ok("已替换");
-
+            Log.ok("source 注入完成");
             injected = true;
         } catch (Throwable t) {
             Log.fail("注入失败: " + t);

@@ -22,34 +22,20 @@ public class MyTransformer implements ClassFileTransformer {
                 public MethodVisitor visitMethod(int acc, String mName, String desc,
                                                  String sig, String[] ex) {
                     MethodVisitor mv = super.visitMethod(acc, mName, desc, sig, ex);
-
-                    // === 在构造函数结尾注入：注册数据包 + 命令 ===
-                    if (mName.equals("<init>")) {
-                        Log.ok("hook 到构造函数 " + desc);
-                        return new MethodVisitor(Opcodes.ASM9, mv) {
-                            @Override
-                            public void visitInsn(int opcode) {
-                                // 在构造函数 return 之前插入
-                                if (opcode == Opcodes.RETURN) {
-                                    // WorldHook.onWorldLoad(this);
-                                    visitVarInsn(Opcodes.ALOAD, 0);
-                                    visitMethodInsn(Opcodes.INVOKESTATIC,
-                                        "com/xf/lg/hook/WorldHook", "onWorldLoad",
-                                        "(Ljava/lang/Object;)V", false);
-
-                                    // CommandHook.register(this);
-                                    visitVarInsn(Opcodes.ALOAD, 0);
-                                    visitMethodInsn(Opcodes.INVOKESTATIC,
-                                        "com/xf/lg/hook/CommandHook", "register",
-                                        "(Ljava/lang/Object;)V", false);
-                                }
-                                super.visitInsn(opcode);
+                    if (!mName.equals("<init>")) return mv;
+                    Log.ok("hook 到 <init>");
+                    return new MethodVisitor(Opcodes.ASM9, mv) {
+                        @Override
+                        public void visitInsn(int opcode) {
+                            if (opcode == Opcodes.RETURN) {
+                                visitVarInsn(Opcodes.ALOAD, 0);
+                                visitMethodInsn(Opcodes.INVOKESTATIC,
+                                    "com/xf/lg/hook/WorldHook", "onWorldLoad",
+                                    "(Ljava/lang/Object;)V", false);
                             }
-                        };
-                    }
-
-                    // === loadLevel 里不再需要注入（构造函数已经做了） ===
-                    return mv;
+                            super.visitInsn(opcode);
+                        }
+                    };
                 }
             };
             cr.accept(cv, 0);
@@ -57,7 +43,6 @@ public class MyTransformer implements ClassFileTransformer {
             return cw.toByteArray();
         } catch (Throwable t) {
             Log.fail("改类炸了: " + t);
-            t.printStackTrace();
             return null;
         }
     }
