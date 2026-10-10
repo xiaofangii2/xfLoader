@@ -8,25 +8,27 @@ triggers:
       branch: main
 
 stages:
-  - stage:
-      name: build-stage
-      displayName: 编译打包
-      failFast: false
-      steps:
-        - step: build@java
-          name: build_jar
-          displayName: 编译并打包
-          jdkVersion: 17
-          commands:
-            - mkdir -p libs
-            - curl -L -o libs/asm-9.8.jar https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
-            - curl -L -o /tmp/brigadier.jar https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
-            - mkdir -p out
-            - javac -cp "libs/asm-9.8.jar:/tmp/brigadier.jar" -d out $(find src -name "*.java")
-            - mkdir -p fat && cd fat && unzip -o ../libs/asm-9.8.jar > /dev/null
-            - rm -rf META-INF && cp -r ../out/com ./com && cp ../META-INF/MANIFEST.MF .
-            - jar cfm ../xiaofang-fat.jar MANIFEST.MF com org
-          artifacts:
-            - name: xfLoader
-              path:
-                - ./xiaofang-fat.jar
+  - name: build-stage
+    displayName: 编译打包
+    failFast: false
+    steps:
+      - step: build@maven
+        name: build_jar
+        displayName: 编译并打包
+        jdkVersion: 17
+        mavenVersion: 3.8.4
+        goals: |
+          mkdir -p libs
+          curl -L -o libs/asm-9.8.jar https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
+          curl -L -o /tmp/brigadier.jar https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
+          mkdir -p out
+          javac -cp "libs/asm-9.8.jar:/tmp/brigadier.jar" -d out $(find src -name "*.java")
+          mkdir -p fat && cd fat && unzip -o ../libs/asm-9.8.jar > /dev/null
+          rm -rf META-INF && cp -r ../out/com ./com && cp ../META-INF/MANIFEST.MF .
+          jar cfm ../xiaofang-fat.jar MANIFEST.MF com org
+          cd ..
+          ls -la xiaofang-fat.jar
+        uploadArtifact: true
+        uploadArtifactOptions:
+          artifactPath: './xiaofang-fat.jar'
+          artifactName: 'xfLoader'
