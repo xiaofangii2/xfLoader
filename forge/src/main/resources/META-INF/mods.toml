@@ -1,0 +1,22 @@
+modLoader="javafml"
+loaderVersion="[66,)"
+license="CC BY-NC-SA 4.0"
+[[mods]]
+modId="xfloader"
+version="2.0.0"
+displayName="xfLoader"
+description="Custom datapack loader for Forge."
+[[dependencies.xfloader]]
+    modId="forge"
+    mandatory=true
+    versionRange="[66,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.xfloader]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[26.3,26.4)"
+    ordering="NONE"
+    side="BOTH"
+[[mixins]]
+    config="mixins.xfloader.json"

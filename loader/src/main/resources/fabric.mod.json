@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "xfloader",
+  "version": "2.0.0",
+  "name": "xfLoader",
+  "description": "Custom datapack loader",
+  "authors": ["xiaofangii2"],
+  "license": "CC-BY-NC-SA-4.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.xf.lg.XfLoaderFabric"]
+  },
+  "mixins": [
+    "myloader.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.0"
+  }
+}

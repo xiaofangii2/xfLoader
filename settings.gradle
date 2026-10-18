@@ -1,3 +1,4 @@
 rootProject.name = 'xfLoader'
 include 'loader'
 include 'installer'
+include 'forge'

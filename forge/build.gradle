@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.xf.lg.forge'
+version = '2.0.0'
+
+dependencies {
+    compileOnly files('../libs/minecraft.jar')
+    compileOnly fileTree(dir: '../forge_deps', include: ['**/*.jar'])
+    compileOnly project(':loader')
+    compileOnly files('/storage/emulated/0/FCL/.minecraft/libraries/it/unimi/dsi/fastutil/8.5.18/fastutil-8.5.18.jar')
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+jar {
+    manifest {
+        attributes(
+            'Manifest-Version': '1.0',
+            'MixinConfigs': 'mixins.xfloader.json'
+        )
+    }
+    from {
+        project(':loader').sourceSets.main.output
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveFileName = 'xfLoader-forge.jar'
+}

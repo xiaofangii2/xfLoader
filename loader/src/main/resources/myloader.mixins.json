@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.xf.lg.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MinecraftServerMixin",
+    "PlayerListMixin"
+  ],
+  "client": [
+    "TitleScreenMixin",
+    "PauseScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

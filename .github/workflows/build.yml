@@ -27,52 +27,53 @@ jobs:
 
       - name: Prepare dependencies
         run: |
-          mkdir -p libs /tmp/deps
-          curl -L -o libs/asm-9.8.jar \
-            https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
-          curl -L -o /tmp/deps/brigadier.jar \
-            https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
+          mkdir -p libs /tmp/deps forge_deps
+          
+          # 下载 ASM
+          curl -L -o libs/asm-9.8.jar https://repo1.maven.org/maven2/org/ow2/asm/asm/9.8/asm-9.8.jar
+          # 下载 Brigadier
+          curl -L -o libs/brigadier-1.3.11.jar https://libraries.minecraft.net/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar
+          # 下载 fastutil
+          curl -L -o forge_deps/fastutil-8.5.18.jar https://repo1.maven.org/maven2/it/unimi/dsi/fastutil/8.5.18/fastutil-8.5.18.jar
+          
+          # 下载 Forge 66.0.13 相关组件 (Maven 云端)
+          # 注意: Forge 66 的依赖非常多，为了最简，只下几个核心的供编译
+          curl -L -o forge_deps/forge-26.3-66.0.13-universal.jar https://maven.minecraftforge.net/net/minecraftforge/forge/26.3-66.0.13/forge-26.3-66.0.13-universal.jar
+          curl -L -o forge_deps/mixin-0.8.7.jar https://repo.spongepowered.org/repository/maven-public/org/spongepowered/mixin/0.8.7/mixin-0.8.7.jar
+          curl -L -o forge_deps/eventbus-6.2.33.jar https://maven.minecraftforge.net/net/minecraftforge/eventbus/6.2.33/eventbus-6.2.33.jar
+          
+          # 下载 Minecraft 客户端 (供 xf-loom 替代)
+          curl -L -o libs/minecraft.jar https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar
 
-      - name: Patch loader/build.gradle for CI
+      - name: Patch build.gradle for CI
         run: |
-          python3 - << 'PYEOF'
-          import re
-          p = 'loader/build.gradle'
-          s = open(p).read()
-          s = s.replace(
-              "'/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar'",
-              "'/tmp/deps/brigadier.jar'"
-          )
-          s = re.sub(r"tasks\.register\('copyToFcl'\).*?\n\}", "", s, flags=re.S)
-          s = re.sub(r"build\.dependsOn copyToFcl\n?", "", s)
-          open(p, 'w').write(s)
-          print('--- patched loader/build.gradle ---')
-          print(s)
-          PYEOF
+          # CI 里不用 xf-loom 去下客户端了，直接指着我们下好的 minecraft.jar
+          sed -i "s|compileOnly files('/storage/emulated/0/FCL/.minecraft/libraries/com/mojang/brigadier/1.3.11/brigadier-1.3.11.jar')|compileOnly files('../libs/brigadier-1.3.11.jar')|" loader/build.gradle
+          sed -i "/copyToFcl/,/^}/d" loader/build.gradle
+          sed -i "/build.dependsOn copyToFcl/d" loader/build.gradle
+          
+          # Forge 里的本地路径替换
+          sed -i "s|compileOnly files('/storage/emulated/0/FCL/.minecraft/libraries/it/unimi/dsi/fastutil/8.5.18/fastutil-8.5.18.jar')|compileOnly files('../forge_deps/fastutil-8.5.18.jar')|" forge/build.gradle
 
-      - name: Build with Gradle
+      - name: Build all modules
         run: ./gradlew clean build --console=plain
 
       - name: Collect jars
         run: |
           mkdir -p build/libs
-          cp loader/build/libs/xfLoader.jar build/libs/
+          cp loader/build/libs/xfLoader-agent.jar build/libs/
+          cp loader/build/libs/xfLoader-fabric.jar build/libs/
+          cp forge/build/libs/xfLoader-forge.jar build/libs/
           cp installer/build/libs/xfLoader-install.jar build/libs/
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: xfLoader-jars
-          path: |
-            build/libs/xfLoader.jar
-            build/libs/xfLoader-install.jar
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/libs/xfLoader.jar
+            build/libs/xfLoader-agent.jar
+            build/libs/xfLoader-fabric.jar
+            build/libs/xfLoader-forge.jar
             build/libs/xfLoader-install.jar
           generate_release_notes: true
         env:

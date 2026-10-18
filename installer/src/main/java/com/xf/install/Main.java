@@ -11,19 +11,10 @@ public class Main {
         System.out.println("官方启动器目录: " + mcDir);
 
         if (!Files.isDirectory(mcDir)) {
-            System.out.println("找不到 .minecraft 目录, 请先用官方启动器启动一次 26.3");
+            System.out.println("找不到 .minecraft 目录, 请先用官方启动器启动一次。");
             return;
         }
 
-        Path versionDir = mcDir.resolve("versions/26.3");
-        Path versionJson = versionDir.resolve("26.3.json");
-
-        if (!Files.exists(versionJson)) {
-            System.out.println("找不到 " + versionJson);
-            System.out.println("请先用官方启动器下载 26.3, 再运行本安装器");
-            return;
-        }
-
-        Installer.install(mcDir, versionJson);
+        Installer.installInteractive(mcDir);
     }
 }

@@ -1,0 +1,16 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        xfLoom {
+            id = 'org.xf.loom'
+            implementationClass = 'org.xf.loom.XfLoomPlugin'
+        }
+    }
+}
